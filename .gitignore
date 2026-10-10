@@ -1,0 +1,23 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Terraform lock file
+.terraform.lock.hcl
+
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
