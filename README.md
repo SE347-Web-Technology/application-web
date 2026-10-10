@@ -97,10 +97,21 @@ Mở URL được Vite hiển thị trong terminal, thường là <http://localh
 
 ## Các lệnh hữu ích
 
-Chạy từ đúng thư mục tương ứng:
+Sau khi đã cài dependency cho từng phần, các lệnh frontend có thể chạy trực tiếp từ thư mục gốc:
+
+```powershell
+# chạy từ application-web/
+npm run build
+npm run lint
+npm run dev:frontend
+npm run dev:backend
+```
+
+Hoặc chạy từ đúng thư mục tương ứng:
 
 ```powershell
 # frontend
+npm run dev
 npm run build
 npm run lint
 
