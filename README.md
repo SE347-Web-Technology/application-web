@@ -31,15 +31,34 @@ git clone https://github.com/SE347-Web-Technology/application-web.git
 cd application-web
 ```
 
-## 2. Tạo database PostgreSQL
+## 2. Cấu hình database PostgreSQL dùng chung
 
-Mở `psql` bằng tài khoản PostgreSQL của bạn và tạo database:
+Database dùng chung được cung cấp theo dạng:
 
-```sql
-CREATE DATABASE cloudops_db;
+```text
+postgresql://postgres:YOUR_DATABASE_PASSWORD@postgres:5432/cloudops_db
 ```
 
-Nếu PostgreSQL yêu cầu mật khẩu, ghi nhớ mật khẩu của user `postgres` để dùng trong `DATABASE_URL` ở bước tiếp theo.
+Không commit mật khẩu thật vào GitHub. Tạo file `backend/.env` trên máy local:
+
+```env
+DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@YOUR_DATABASE_HOST:5432/cloudops_db"
+PORT=3000
+```
+
+Nếu máy bạn phân giải được hostname `postgres`, dùng:
+
+```env
+DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@postgres:5432/cloudops_db"
+```
+
+Hostname `postgres` thường chỉ hoạt động trong Docker network hoặc mạng nội bộ có DNS/hosts tương ứng. Nếu PostgreSQL chạy trực tiếp trên máy ASUS, dùng `localhost`:
+
+```env
+DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@localhost:5432/cloudops_db"
+```
+
+Nếu database nằm trên máy khác, thay `YOUR_DATABASE_HOST` bằng hostname hoặc IP mà máy bạn truy cập được.
 
 ## 3. Cấu hình và chạy backend
 
@@ -48,13 +67,6 @@ Mở một terminal tại thư mục project:
 ```powershell
 cd backend
 npm install
-```
-
-Tạo file `backend/.env` với nội dung sau. Thay `YOUR_POSTGRES_PASSWORD` bằng mật khẩu PostgreSQL trên máy của bạn:
-
-```env
-DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/cloudops_db?schema=public"
-PORT=3000
 ```
 
 Áp dụng các migration:
@@ -94,6 +106,28 @@ npm run dev
 ```
 
 Mở URL được Vite hiển thị trong terminal, thường là <http://localhost:5173>.
+
+## Chạy web bằng 3 lệnh
+
+Sau khi đã tạo `backend/.env` và cài dependencies một lần, mở Git Bash tại thư mục project:
+
+```bash
+cd /e/application-web
+```
+
+Mở terminal thứ hai và chạy backend:
+
+```bash
+npm run dev:backend
+```
+
+Mở terminal thứ ba và chạy frontend:
+
+```bash
+cd /e/application-web && npm run dev:frontend
+```
+
+Truy cập giao diện tại <http://localhost:5173>. Backend phải kết nối được database dùng chung trước khi các thao tác board/card hoạt động.
 
 ## Các lệnh hữu ích
 
