@@ -41,7 +41,8 @@ export async function createCard(data: Partial<Card>): Promise<Card> {
       throw new Error(`Failed to create card: ${res.status}`);
     }
 
-    return await res.json();
+    const json = await res.json();
+    return json.data;
   } catch (err) {
     console.error("Error creating card:", err);
     throw err;
@@ -77,7 +78,8 @@ export async function updateCard(id: string, data: Partial<Card>): Promise<Card>
       throw new Error(`Failed to update card: ${res.status}`);
     }
 
-    const updatedCard = await res.json();
+    const responseData = await res.json();
+    const updatedCard = responseData.data;
     console.log("✅ Updated card successfully:", updatedCard);
     return updatedCard;
   } catch (err) {

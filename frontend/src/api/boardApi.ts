@@ -36,7 +36,8 @@ export async function createBoard(data: Partial<Board>): Promise<Board> {
       throw new Error(`Server responded with ${res.status}`);
     }
 
-    return await res.json();
+    const json = await res.json();
+    return json.data;
   } catch (err) {
     console.error("Error creating board:", err);
     throw err;
