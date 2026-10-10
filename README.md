@@ -1,70 +1,87 @@
 # Application Web
 
-Ứng dụng quản lý công việc dạng Kanban, gồm:
+Ứng dụng Kanban gồm PostgreSQL, backend Express/Prisma và frontend React/Vite.
+Hướng dẫn này chạy local trên Windows, không dùng Docker Compose.
 
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS và dnd-kit.
-- **Backend:** Node.js, Express và Prisma.
-- **Database:** PostgreSQL.
+## Yêu cầu
 
-Hướng dẫn này chạy ứng dụng trực tiếp trên máy local, **không sử dụng Docker/Docker Compose**.
-Docker Compose sẽ được bổ sung ở phần triển khai sau.
+- Windows PowerShell hoặc Git Bash.
+- Node.js 20 trở lên.
+- Quyền Administrator khi cài hoặc khởi động PostgreSQL.
 
-## Yêu cầu môi trường
+## 1. Cài PostgreSQL bằng lệnh
 
-Cài đặt:
+Mở **PowerShell bằng quyền Administrator**:
 
-- Node.js 20 trở lên và npm.
-- PostgreSQL 14 trở lên.
-- Git.
-
-Kiểm tra:
-
-```bash
-node --version
-npm --version
-psql --version
+```powershell
+winget install --id PostgreSQL.PostgreSQL.17 -e
 ```
 
-## 1. Clone project
+Trong trình cài đặt, nhớ mật khẩu của user `postgres` và giữ port `5432`.
+Đóng rồi mở lại PowerShell sau khi cài xong.
 
-```bash
-git clone https://github.com/SE347-Web-Technology/application-web.git
-cd application-web
+Kiểm tra service PostgreSQL:
+
+```powershell
+Get-Service -Name postgresql*
 ```
 
-## 2. Chuẩn bị database local
+Khởi động service nếu đang dừng:
 
-Đây là thành phần thứ nhất. Cài PostgreSQL trực tiếp trên máy, sau đó tạo database:
+```powershell
+Get-Service -Name postgresql* | Start-Service
+```
+
+## 2. Đặt password và tạo database bằng lệnh
+
+Nếu `psql` đã có trong PATH:
+
+```powershell
+psql -U postgres -h localhost -p 5432
+```
+
+Nếu PowerShell báo không tìm thấy `psql`, dùng đường dẫn đầy đủ:
+
+```powershell
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -h localhost -p 5432
+```
+
+Nhập mật khẩu đã đặt khi cài PostgreSQL. Khi thấy prompt `postgres=#`, chạy:
 
 ```sql
+ALTER USER postgres WITH PASSWORD 'Postgres12345';
 CREATE DATABASE cloudops_db;
+\q
 ```
 
-Tạo file `backend/.env`:
+Nếu database đã tồn tại, thông báo `database "cloudops_db" already exists` có thể bỏ qua.
+Thay `Postgres12345` bằng mật khẩu bạn muốn dùng. Không dùng dấu nháy đơn trong mật khẩu
+ở câu lệnh SQL.
 
-```env
-DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@localhost:5432/cloudops_db?schema=public"
-PORT=3000
-```
+## 3. Cấu hình và setup backend
 
-Khi chạy local, dùng `localhost` vì PostgreSQL chạy trên máy của bạn. Chuỗi có hostname
-`postgres` chỉ phù hợp khi Docker Compose hoặc DNS nội bộ cung cấp hostname đó; không dùng
-chuỗi đó cho PostgreSQL local nếu máy chưa cấu hình hostname `postgres`.
-
-## 3. Cài dependency và khởi tạo backend
-
-Chạy một lần:
+Từ Git Bash:
 
 ```bash
 cd /e/application-web/backend
+```
+
+Tạo file `backend/.env` với nội dung sau, dùng đúng password vừa đặt:
+
+```env
+DATABASE_URL="postgresql://postgres:Postgres12345@localhost:5432/cloudops_db?schema=public"
+PORT=3000
+```
+
+Cài package và setup Prisma:
+
+```bash
 npm install
 npx prisma generate
 npx prisma migrate deploy
 ```
 
-## 4. Cài dependency và cấu hình frontend
-
-Chạy một lần:
+Nếu chưa có thư mục frontend dependencies, cài một lần:
 
 ```bash
 cd /e/application-web/frontend
@@ -77,87 +94,64 @@ Tạo file `frontend/.env`:
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-## Chạy local đủ 3 thành phần
+## 4. Chạy trang web bằng 3 lệnh
 
-Sau khi cài đặt xong, ứng dụng cần có 3 thành phần:
+Sau khi setup xong, dùng ba terminal.
 
-1. **PostgreSQL:** database chạy dưới dạng Windows Service.
-2. **Backend:** API Express/Prisma tại cổng `3000`.
-3. **Frontend:** giao diện Vite tại cổng `5173`.
+### Terminal 1 — bật PostgreSQL
 
-### Terminal 1 — PostgreSQL
-
-Mở PostgreSQL service trong Windows. Có thể kiểm tra bằng PowerShell:
+PowerShell Administrator:
 
 ```powershell
-Get-Service -Name postgresql*
+Get-Service -Name postgresql* | Start-Service
 ```
 
-Nếu service đang dừng, mở ứng dụng Services của Windows và start service PostgreSQL.
+### Terminal 2 — chạy backend
 
-### Terminal 2 — Backend
-
-Mở Git Bash tại thư mục project:
+Git Bash:
 
 ```bash
-cd /e/application-web
-npm run dev:backend
+cd /e/application-web && npm run dev:backend
 ```
 
-Backend chạy tại <http://localhost:3000>. API documentation chạy tại
-<http://localhost:3000/api-docs>.
+Backend chạy tại <http://localhost:3000>.
 
-### Terminal 3 — Frontend
+### Terminal 3 — chạy frontend
 
-Mở Git Bash thứ hai:
+Git Bash:
 
 ```bash
-cd /e/application-web
-npm run dev:frontend
+cd /e/application-web && npm run dev:frontend
 ```
 
-Truy cập giao diện tại <http://localhost:5173>.
+Mở giao diện tại <http://localhost:5173>.
 
-## Build frontend
+## Nếu bạn đã tạo database rồi
 
-Lệnh build chỉ tạo file production, không khởi động web server:
-
-```bash
-cd /e/application-web
-npm run build
-```
-
-Muốn xem giao diện trong lúc phát triển, dùng `npm run dev:frontend`.
-
-## Các lệnh hữu ích
-
-```bash
-# Chạy từ application-web/
-npm run dev:backend
-npm run dev:frontend
-npm run build
-npm run lint
-```
-
-Khi thay đổi schema Prisma:
+Không cần chạy lại `CREATE DATABASE`. Làm tiếp theo thứ tự:
 
 ```bash
 cd /e/application-web/backend
-npx prisma migrate dev --name ten-migration
+npm install
+npx prisma generate
+npx prisma migrate deploy
 ```
 
-## Cấu trúc project
+Sau đó mở ba terminal và chạy ba lệnh ở mục **Chạy trang web bằng 3 lệnh**.
 
-```text
-application-web/
-├── backend/    # Express API, Prisma schema và migrations
-├── frontend/   # React/Vite application
-└── README.md
+## Build frontend
+
+`build` chỉ biên dịch frontend, không khởi động web server:
+
+```bash
+cd /e/application-web
+npm run build
 ```
+
+Muốn mở giao diện local, dùng `npm run dev:frontend`.
 
 ## Lưu ý
 
-- Không commit `backend/.env` hoặc `frontend/.env` lên GitHub.
-- PostgreSQL phải chạy trước backend; backend phải chạy trước khi frontend gọi API.
-- Nếu đổi cổng backend, cập nhật đồng thời `PORT` trong `backend/.env` và
-  `VITE_API_BASE_URL` trong `frontend/.env`.
+- Không commit `backend/.env` hoặc `frontend/.env`.
+- PostgreSQL local dùng hostname `localhost`, không dùng hostname `postgres` của Docker Compose.
+- Nếu đổi port backend, cập nhật cả `PORT` và `VITE_API_BASE_URL`.
