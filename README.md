@@ -6,19 +6,20 @@
 - **Backend:** Node.js, Express và Prisma.
 - **Database:** PostgreSQL.
 
-Hướng dẫn dưới đây chạy ứng dụng trực tiếp trên máy local, **không sử dụng Docker/Docker Compose**.
+Hướng dẫn này chạy ứng dụng trực tiếp trên máy local, **không sử dụng Docker/Docker Compose**.
+Docker Compose sẽ được bổ sung ở phần triển khai sau.
 
 ## Yêu cầu môi trường
 
-Cài đặt các phần mềm sau trước khi bắt đầu:
+Cài đặt:
 
 - Node.js 20 trở lên và npm.
 - PostgreSQL 14 trở lên.
 - Git.
 
-Kiểm tra cài đặt:
+Kiểm tra:
 
-```powershell
+```bash
 node --version
 npm --version
 psql --version
@@ -26,70 +27,47 @@ psql --version
 
 ## 1. Clone project
 
-```powershell
+```bash
 git clone https://github.com/SE347-Web-Technology/application-web.git
 cd application-web
 ```
 
-## 2. Cấu hình database PostgreSQL dùng chung
+## 2. Chuẩn bị database local
 
-Database dùng chung được cung cấp theo dạng:
+Đây là thành phần thứ nhất. Cài PostgreSQL trực tiếp trên máy, sau đó tạo database:
 
-```text
-postgresql://postgres:YOUR_DATABASE_PASSWORD@postgres:5432/cloudops_db
+```sql
+CREATE DATABASE cloudops_db;
 ```
 
-Không commit mật khẩu thật vào GitHub. Tạo file `backend/.env` trên máy local:
+Tạo file `backend/.env`:
 
 ```env
-DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@YOUR_DATABASE_HOST:5432/cloudops_db"
+DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@localhost:5432/cloudops_db?schema=public"
 PORT=3000
 ```
 
-Nếu máy bạn phân giải được hostname `postgres`, dùng:
+Khi chạy local, dùng `localhost` vì PostgreSQL chạy trên máy của bạn. Chuỗi có hostname
+`postgres` chỉ phù hợp khi Docker Compose hoặc DNS nội bộ cung cấp hostname đó; không dùng
+chuỗi đó cho PostgreSQL local nếu máy chưa cấu hình hostname `postgres`.
 
-```env
-DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@postgres:5432/cloudops_db"
-```
+## 3. Cài dependency và khởi tạo backend
 
-Hostname `postgres` thường chỉ hoạt động trong Docker network hoặc mạng nội bộ có DNS/hosts tương ứng. Nếu PostgreSQL chạy trực tiếp trên máy ASUS, dùng `localhost`:
+Chạy một lần:
 
-```env
-DATABASE_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@localhost:5432/cloudops_db"
-```
-
-Nếu database nằm trên máy khác, thay `YOUR_DATABASE_HOST` bằng hostname hoặc IP mà máy bạn truy cập được.
-
-## 3. Cấu hình và chạy backend
-
-Mở một terminal tại thư mục project:
-
-```powershell
-cd backend
+```bash
+cd /e/application-web/backend
 npm install
-```
-
-Áp dụng các migration:
-
-```powershell
 npx prisma generate
 npx prisma migrate deploy
 ```
 
-Khởi động backend ở chế độ development:
+## 4. Cài dependency và cấu hình frontend
 
-```powershell
-npm run dev
-```
+Chạy một lần:
 
-Backend chạy tại <http://localhost:3000>. Trang API documentation có tại <http://localhost:3000/api-docs>.
-
-## 4. Cấu hình và chạy frontend
-
-Mở **terminal thứ hai** tại thư mục project:
-
-```powershell
-cd frontend
+```bash
+cd /e/application-web/frontend
 npm install
 ```
 
@@ -99,64 +77,72 @@ Tạo file `frontend/.env`:
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-Khởi động frontend:
+## Chạy local đủ 3 thành phần
+
+Sau khi cài đặt xong, ứng dụng cần có 3 thành phần:
+
+1. **PostgreSQL:** database chạy dưới dạng Windows Service.
+2. **Backend:** API Express/Prisma tại cổng `3000`.
+3. **Frontend:** giao diện Vite tại cổng `5173`.
+
+### Terminal 1 — PostgreSQL
+
+Mở PostgreSQL service trong Windows. Có thể kiểm tra bằng PowerShell:
 
 ```powershell
-npm run dev
+Get-Service -Name postgresql*
 ```
 
-Mở URL được Vite hiển thị trong terminal, thường là <http://localhost:5173>.
+Nếu service đang dừng, mở ứng dụng Services của Windows và start service PostgreSQL.
 
-## Chạy web bằng 3 lệnh
+### Terminal 2 — Backend
 
-Sau khi đã tạo `backend/.env` và cài dependencies một lần, mở Git Bash tại thư mục project:
+Mở Git Bash tại thư mục project:
 
 ```bash
 cd /e/application-web
-```
-
-Mở terminal thứ hai và chạy backend:
-
-```bash
 npm run dev:backend
 ```
 
-Mở terminal thứ ba và chạy frontend:
+Backend chạy tại <http://localhost:3000>. API documentation chạy tại
+<http://localhost:3000/api-docs>.
+
+### Terminal 3 — Frontend
+
+Mở Git Bash thứ hai:
 
 ```bash
-cd /e/application-web && npm run dev:frontend
+cd /e/application-web
+npm run dev:frontend
 ```
 
-Truy cập giao diện tại <http://localhost:5173>. Backend phải kết nối được database dùng chung trước khi các thao tác board/card hoạt động.
+Truy cập giao diện tại <http://localhost:5173>.
+
+## Build frontend
+
+Lệnh build chỉ tạo file production, không khởi động web server:
+
+```bash
+cd /e/application-web
+npm run build
+```
+
+Muốn xem giao diện trong lúc phát triển, dùng `npm run dev:frontend`.
 
 ## Các lệnh hữu ích
 
-Sau khi đã cài dependency cho từng phần, các lệnh frontend có thể chạy trực tiếp từ thư mục gốc:
-
-```powershell
-# chạy từ application-web/
-npm run build
-npm run lint
-npm run dev:frontend
+```bash
+# Chạy từ application-web/
 npm run dev:backend
-```
-
-Hoặc chạy từ đúng thư mục tương ứng:
-
-```powershell
-# frontend
-npm run dev
+npm run dev:frontend
 npm run build
 npm run lint
-
-# backend
-npm start
 ```
 
-Khi thay đổi schema Prisma trong quá trình phát triển, có thể tạo migration mới bằng:
+Khi thay đổi schema Prisma:
 
-```powershell
-cd backend
+```bash
+cd /e/application-web/backend
 npx prisma migrate dev --name ten-migration
 ```
 
@@ -172,5 +158,6 @@ application-web/
 ## Lưu ý
 
 - Không commit `backend/.env` hoặc `frontend/.env` lên GitHub.
-- PostgreSQL và backend phải đang chạy trước khi sử dụng frontend.
-- Nếu đổi cổng backend, cập nhật đồng thời `PORT` trong `backend/.env` và `VITE_API_BASE_URL` trong `frontend/.env`.
+- PostgreSQL phải chạy trước backend; backend phải chạy trước khi frontend gọi API.
+- Nếu đổi cổng backend, cập nhật đồng thời `PORT` trong `backend/.env` và
+  `VITE_API_BASE_URL` trong `frontend/.env`.
