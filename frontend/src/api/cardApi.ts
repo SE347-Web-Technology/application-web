@@ -52,7 +52,10 @@ export async function createCard(data: Partial<Card>): Promise<Card> {
 export async function updateCard(id: string, data: Partial<Card>): Promise<Card> {
   console.log("Updating card with id:", id, "and data:", data);
 
-  const cleanData: any = {
+  const cleanData: Omit<Partial<Card>, "dueDate"> & {
+    dueDate: string | null;
+    board?: { connect: { id: string } };
+  } = {
     ...data,
     dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
   };
