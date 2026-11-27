@@ -7,7 +7,7 @@ services:
     dockerContext: .
     plan: free
     region: singapore
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: 'off'
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -26,7 +26,7 @@ services:
     dockerContext: .
     plan: free
     region: singapore
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: 'off'
     envVars:
       - key: API_BASE_URL
         fromService:
