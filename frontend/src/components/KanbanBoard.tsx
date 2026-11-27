@@ -32,7 +32,7 @@ function KanbanBoard() {
   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
 
-  const [projectTitle, setProjectTitle] = useState("CloudOps-Practice");
+  const [projectTitle, setProjectTitle] = useState("kanban board");
   const [isEditingProjectTitle, setIsEditingProjectTitle] = useState(false);
 
   useEffect(() => {
